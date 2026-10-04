@@ -1,71 +1,109 @@
-NSEE INDIA — MASTER PROJECT BRIEF
 
-Handoff Document for Development Team
+# NSEE INDIA — MASTER PROJECT BRIEF
+**Handoff Document for Development Team**
 
-Version: 1.0
-Date: October 2026
-Prepared for: Development Agent / Team
-Project: National Scholarship Entrance Exam Portal
-Domain: nseeindia.com
+| Field | Value |
+|---|---|
+| Version | 1.0 |
+| Date | October 2026 |
+| Prepared for | Development Agent / Team |
+| Project | National Scholarship Entrance Exam Portal |
+| Domain | nseeindia.com |
+| Status | Ready for Development |
 
 ---
 
-1. PROJECT OVERVIEW
+## Table of Contents
 
-NSEE India is a government-grade online examination portal for conducting scholarship entrance exams across all Indian states, district-wise, in both online and offline modes.
+1. [Project Overview](#1-project-overview)
+2. [Technology Stack](#2-technology-stack-final)
+3. [Architecture](#3-architecture)
+4. [Roles & Permissions](#4-roles--permissions)
+5. [Public-First Launch](#5-public-first-launch-critical)
+6. [Sprint Plan](#6-sprint-plan-incremental)
+7. [Feature Specifications](#7-feature-specifications)
+8. [Frontend Structure](#8-frontend-structure)
+9. [Design System](#9-design-system-government-style-modern)
+10. [Database](#10-database-key-tables)
+11. [API Conventions](#11-api-conventions)
+12. [Security](#12-security)
+13. [CI/CD](#13-cicd)
+14. [Branch & Release Strategy](#14-branch--release-strategy)
+15. [Definition of Done](#15-definition-of-done-per-feature)
+16. [Rules to Enforce](#16-rules-to-enforce)
+17. [Immediate First Steps](#17-immediate-first-steps)
+18. [Environment Variables](#18-environment-variables)
+19. [Success Metrics](#19-success-metrics)
+20. [Final Notes for Agent](#20-final-notes-for-agent)
 
-Exam Levels Supported:
+---
+
+## 1. PROJECT OVERVIEW
+
+**NSEE India** is a government-grade online examination portal for conducting scholarship entrance exams across all Indian states, district-wise, in both **online** and **offline** modes.
+
+### Exam Levels Supported
 Class 5, 6, 7, 8, 9, 10, 11, 12, BCA, B.Tech, MCA, M.Tech
 
-Exam Fee: ₹99 per exam (via Razorpay)
+### Exam Fee
+₹99 per exam (via Razorpay)
 
-Student Flow:
+### Student Flow
+```
+
 Register → USID → Progressive Profile → Apply → Pay → Admit Card → Exam → Result
 
-Launch Strategy: Public-first. Launch registration + profile + notices in 7 weeks. Unlock exam features one by one.
+```
+
+### Launch Strategy
+Public-first. Launch registration + profile + notices in **7 weeks**. Unlock exam features one by one.
 
 ---
 
-2. TECHNOLOGY STACK (FINAL)
+## 2. TECHNOLOGY STACK (FINAL)
 
-Layer Technology
-Backend Java 21 + Spring Boot 3.3
-Build Maven
-Architecture Hexagonal (Ports & Adapters)
-Persistence Spring Data JPA + Hibernate + Flyway
-Database PostgreSQL 16
-Cache/Session Redis 7
-Auth Spring Security + JWT + OTP
-Payments Razorpay Java SDK
-PDF OpenPDF
-WebSocket Spring WebSocket (STOMP)
-Frontend React 18 + TypeScript + Vite + Tailwind CSS + React Query
-Container Docker + Docker Compose
-Reverse Proxy Nginx
-CI/CD GitHub Actions
-Hosting VPS (Docker Compose)
-Storage S3-compatible (MinIO / AWS S3)
+| Layer | Technology |
+|---|---|
+| Backend | Java 21 + Spring Boot 3.3 |
+| Build | Maven |
+| Architecture | Hexagonal (Ports & Adapters) |
+| Persistence | Spring Data JPA + Hibernate + Flyway |
+| Database | PostgreSQL 16 |
+| Cache/Session | Redis 7 |
+| Auth | Spring Security + JWT + OTP |
+| Payments | Razorpay Java SDK |
+| PDF | OpenPDF |
+| WebSocket | Spring WebSocket (STOMP) |
+| Frontend | React 18 + TypeScript + Vite + Tailwind CSS + React Query |
+| Container | Docker + Docker Compose |
+| Reverse Proxy | Nginx |
+| CI/CD | GitHub Actions |
+| Hosting | VPS (Docker Compose) |
+| Storage | S3-compatible (MinIO / AWS S3) |
 
-No other frameworks. No Kafka. No Kubernetes (initially).
+> **No other frameworks. No Kafka. No Kubernetes (initially).**
 
 ---
 
-3. ARCHITECTURE
+## 3. ARCHITECTURE
 
-3.1 Hexagonal (Ports & Adapters)
+### 3.1 Hexagonal (Ports & Adapters)
 
 Each feature has 4 layers:
 
 ```
+
 domain/         → Pure business logic (no Spring, no JPA)
 application/    → Use cases, orchestration
 infrastructure/ → Adapters (JPA, Redis, external APIs)
 presentation/   → REST controllers
-```
-
-3.2 Feature-First Folder Structure
 
 ```
+
+### 3.2 Feature-First Folder Structure
+
+```
+
 src/main/java/com/nsee/
 ├── core/                          # Shared kernel
 │   ├── domain/
@@ -94,11 +132,13 @@ src/main/java/com/nsee/
 │   ├── admin/
 │   └── audit/
 └── bootstrap/
-```
-
-3.3 Feature Template (Repeat for Each)
 
 ```
+
+### 3.3 Feature Template (Repeat for Each)
+
+```
+
 features/exam/
 ├── domain/
 │   ├── model/          # Aggregate roots, entities, VOs
@@ -120,36 +160,37 @@ features/exam/
 │   ├── request/
 │   └── response/
 └── ExamModuleConfig.java   # Spring @Configuration
+
 ```
 
-Rules:
-
-· domain/ imports nothing outside JDK.
-· application/ imports only domain/.
-· infrastructure/ implements domain/port/out.
-· presentation/ calls domain/port/in only.
-
----
-
-4. ROLES & PERMISSIONS
-
-Role Scope Key Permissions
-SUPER_ADMIN Global Create admins, approve exams/notices, global config
-EXAM_SETTER State/National Create exams, question bank, generate papers, publish
-STATE_ADMIN State Manage districts, state reports
-DISTRICT_CONTROLLER District Add centres, assign centre controllers
-CENTRE_CONTROLLER Centre Conduct offline exam, verify students, unlock PCs
-INVIGILATOR Centre/Remote Monitor live exam, warn, terminate
-STUDENT Self Register, profile, apply, pay, exam, result
-SUPPORT Read-only Queries, grievances, audit
-
-Maker–Checker Rule: Exam Setter creates → Super Admin approves → then publish.
+**Rules:**
+- `domain/` imports nothing outside JDK.
+- `application/` imports only `domain/`.
+- `infrastructure/` implements `domain/port/out`.
+- `presentation/` calls `domain/port/in` only.
 
 ---
 
-5. PUBLIC-FIRST LAUNCH (CRITICAL)
+## 4. ROLES & PERMISSIONS
 
-5.1 Public Launch = Week 7
+| Role | Scope | Key Permissions |
+|---|---|---|
+| `SUPER_ADMIN` | Global | Create admins, approve exams/notices, global config |
+| `EXAM_SETTER` | State/National | Create exams, question bank, generate papers, publish |
+| `STATE_ADMIN` | State | Manage districts, state reports |
+| `DISTRICT_CONTROLLER` | District | Add centres, assign centre controllers |
+| `CENTRE_CONTROLLER` | Centre | Conduct offline exam, verify students, unlock PCs |
+| `INVIGILATOR` | Centre/Remote | Monitor live exam, warn, terminate |
+| `STUDENT` | Self | Register, profile, apply, pay, exam, result |
+| `SUPPORT` | Read-only | Queries, grievances, audit |
+
+> **Maker–Checker Rule:** Exam Setter creates → Super Admin approves → then publish.
+
+---
+
+## 5. PUBLIC-FIRST LAUNCH (CRITICAL)
+
+### 5.1 Public Launch = Week 7
 
 Ship these features first to make the site live:
 
@@ -158,20 +199,20 @@ Ship these features first to make the site live:
 3. Student Registration + USID (Sprint 2)
 4. Progressive Profile (Sprint 3)
 
-Then LAUNCH → public sees a working government portal.
+**Then LAUNCH** → public sees a working government portal.
 
-5.2 Public Site Must Include
+### 5.2 Public Site Must Include
 
-· Home page (government style)
-· Notice Board (public)
-· Exam catalog (read-only, static JSON initially)
-· Public Query Form (no login)
-· Registration + Login
-· Progressive Profile
-· "Notify Me" on each exam (instead of "Apply")
-· About, RTI, Privacy, Terms, Grievance Officer, Contact, Sitemap
+- Home page (government style)
+- Notice Board (public)
+- Exam catalog (read-only, static JSON initially)
+- Public Query Form (no login)
+- Registration + Login
+- Progressive Profile
+- "Notify Me" on each exam (instead of "Apply")
+- About, RTI, Privacy, Terms, Grievance Officer, Contact, Sitemap
 
-5.3 Locked Features
+### 5.3 Locked Features
 
 Show "Coming Soon" badge. Feature flags control visibility.
 
@@ -268,11 +309,13 @@ Full platform: ~9 months
 
 Endpoints:
 
-· POST /auth/register
-· POST /auth/verify-otp
-· POST /auth/login
-· POST /auth/refresh
-· POST /auth/logout
+```
+POST /auth/register
+POST /auth/verify-otp
+POST /auth/login
+POST /auth/refresh
+POST /auth/logout
+```
 
 Tables: users, roles, user_roles, otp, refresh_tokens, login_audit
 
@@ -286,8 +329,10 @@ USID Format: NSEE/YYYY/STATE/DIST/000123
 
 Endpoints:
 
-· POST /students/register
-· GET /students/usid/{id}
+```
+POST /students/register
+GET  /students/usid/{id}
+```
 
 Tables: students, usid_sequence
 
@@ -301,9 +346,11 @@ Sections: Personal, Education, Parents, Bank, Documents, Address
 
 Endpoints:
 
-· GET /profiles/me
-· PATCH /profiles/me
-· GET /profiles/me/completeness
+```
+GET   /profiles/me
+PATCH /profiles/me
+GET   /profiles/me/completeness
+```
 
 Tables: student_profiles, profile_documents, profile_audit
 
@@ -313,7 +360,7 @@ Freeze when: 100% completeness required to apply.
 
 7.5 Sprint 4 — Geography
 
-· states, districts, centres, centre_staff
+· Tables: states, districts, centres, centre_staff
 · Admin-only CRUD
 · Hierarchy: State → District → Centre
 
@@ -325,9 +372,15 @@ Targeting: state, district, level, exam, audience
 
 Endpoints:
 
-· GET /notices (public)
-· GET /notices/home (top 5)
-· Admin: POST /notices, /submit, /approve, /publish, /archive
+```
+GET  /notices              (public)
+GET  /notices/home         (top 5)
+POST /notices              (admin)
+POST /notices/{id}/submit
+POST /notices/{id}/approve
+POST /notices/{id}/publish
+POST /notices/{id}/archive
+```
 
 Tables: notices, notice_audit
 
@@ -348,11 +401,13 @@ State machine: DRAFT → PENDING → APPROVED → PUBLISHED → ARCHIVED
 
 Endpoints:
 
-· POST /exams
-· PUT /exams/{id}
-· POST /exams/{id}/submit (to approval)
-· POST /exams/{id}/approve (Super Admin only)
-· POST /exams/{id}/publish
+```
+POST /exams
+PUT  /exams/{id}
+POST /exams/{id}/submit      (to approval)
+POST /exams/{id}/approve     (Super Admin only)
+POST /exams/{id}/publish
+```
 
 Tests: Setter cannot approve own exam
 
@@ -490,18 +545,17 @@ nsee-frontend/
 
 9.1 Colors
 
-```
-Navy Blue    #0B3D91   → header, primary buttons, links
-Saffron      #FF9933   → accent, highlights
-India Green  #138808   → success, verified
-White        #FFFFFF   → background
-Text         #1A1A1A
-Muted        #4A4A4A
-Border       #E0E0E0
-Background   #F7F9FC
-Error        #D32F2F
-Warning      #F5A623
-```
+Token Hex Usage
+Navy Blue #0B3D91 Header, primary buttons, links
+Saffron #FF9933 Accent, highlights
+India Green #138808 Success, verified
+White #FFFFFF Background
+Text #1A1A1A Body text
+Muted #4A4A4A Secondary text
+Border #E0E0E0 Borders
+Background #F7F9FC Page background
+Error #D32F2F Errors
+Warning #F5A623 Warnings
 
 9.2 Typography
 
@@ -569,15 +623,17 @@ Rule: Every migration reversible. No ddl-auto=update in prod.
 · JWT in Authorization: Bearer <token>
 · HTTP status codes: 200, 201, 204, 400, 401, 403, 404, 409, 422, 500
 · Error format:
-  ```json
-  {
-    "timestamp": "2026-10-04T10:00:00Z",
-    "status": 400,
-    "error": "VALIDATION_ERROR",
-    "message": "Email already exists",
-    "path": "/api/v1/auth/register"
-  }
-  ```
+
+```json
+{
+  "timestamp": "2026-10-04T10:00:00Z",
+  "status": 400,
+  "error": "VALIDATION_ERROR",
+  "message": "Email already exists",
+  "path": "/api/v1/auth/register"
+}
+```
+
 · Pagination: ?page=0&size=20&sort=createdAt,desc
 · OpenAPI spec at /swagger-ui.html
 
@@ -637,7 +693,11 @@ Runs on push to main:
 13.3 GitHub Secrets
 
 ```
-VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_PORT, GHCR_TOKEN
+VPS_HOST
+VPS_USER
+VPS_SSH_KEY
+VPS_PORT
+GHCR_TOKEN
 ```
 
 13.4 Docker Compose on VPS
@@ -681,7 +741,7 @@ v1.0.0-production
 
 ---
 
-15. DEFINITION OF DONE (Per Feature)
+15. DEFINITION OF DONE (PER FEATURE)
 
 ☐ OpenAPI spec merged
 ☐ Flyway migration applied in dev/staging
@@ -813,3 +873,9 @@ Any change must be versioned and approved.
 Next action: Start Sprint 0 immediately.
 Public launch target: Week 7.
 Full platform target: Month 9.
+
+```
+
+---
+
+Save the above as **`NSEE_MASTER_BRIEF.md`** in the root of your repository. Hand this file directly to your agent — it contains everything needed to start development.
